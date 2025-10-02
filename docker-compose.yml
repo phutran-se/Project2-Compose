@@ -1,0 +1,45 @@
+version: "3.9"
+
+volumes:
+  jenkins_home:
+  docker_certs_ca:
+  docker_certs_client:
+  docker_cache:
+
+networks:
+  jenkins_net:
+
+services:
+  dind:
+    image: docker:dind
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
+    volumes:
+      - docker_certs_ca:/certs/ca
+      - docker_certs_client:/certs/client
+      - docker_cache:/var/lib/docker
+      # 👇 ADD THIS: share Jenkins home so DinD sees /var/jenkins_home/...
+      - jenkins_home:/var/jenkins_home
+    networks:
+      jenkins_net:
+        aliases: ["docker"]
+    restart: unless-stopped
+
+  jenkins:
+    image: jenkins/jenkins:lts-jdk11
+    user: root
+    environment:
+      - DOCKER_HOST=tcp://docker:2376
+      - DOCKER_CERT_PATH=/certs/client
+      - DOCKER_TLS_VERIFY=1
+    volumes:
+      - jenkins_home:/var/jenkins_home      # already present
+      - docker_certs_client:/certs/client:ro
+      - /usr/bin/docker:/usr/bin/docker
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    networks: [jenkins_net]
+    restart: unless-stopped
+
