@@ -184,8 +184,3 @@ docker logs dind --tail=100
 * **Slow first security scan (if using OWASP DC)**
   The first run downloads a large CVE database. Use a persistent cache path (outside the workspace) if you switch to OWASP DC. For Snyk CLI, this is not required.
 
----
-
-
-```
-```
