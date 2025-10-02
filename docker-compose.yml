@@ -1,45 +1,43 @@
-version: "3.9"
+version: "3.9"   # Docker Compose file format version
 
 volumes:
-  jenkins_home:
-  docker_certs_ca:
-  docker_certs_client:
-  docker_cache:
+  jenkins_home:        # Persist Jenkins data (config, jobs, plugins, workspace)
+  docker_certs_ca:     # Store CA certificates for Docker TLS
+  docker_certs_client: # Store client certificates so Jenkins can connect to DinD securely
+  docker_cache:        # Cache for Docker image layers inside DinD (faster builds)
 
 networks:
-  jenkins_net:
+  jenkins_net:        # User-defined network so Jenkins and DinD can communicate
 
 services:
-  dind:
+  dind:               # Docker-in-Docker service (Docker daemon in a container)
     image: docker:dind
-    privileged: true
+    privileged: true  # Required so DinD can run properly
     environment:
-      - DOCKER_TLS_CERTDIR=/certs
+      - DOCKER_TLS_CERTDIR=/certs  # Enable TLS for Docker daemon
     volumes:
-      - docker_certs_ca:/certs/ca
-      - docker_certs_client:/certs/client
-      - docker_cache:/var/lib/docker
-      # 👇 ADD THIS: share Jenkins home so DinD sees /var/jenkins_home/...
-      - jenkins_home:/var/jenkins_home
+      - docker_certs_ca:/certs/ca          # Mount CA certs
+      - docker_certs_client:/certs/client  # Mount client certs
+      - docker_cache:/var/lib/docker       # Store Docker image cache
+      - jenkins_home:/var/jenkins_home     # Share Jenkins workspace with DinD
     networks:
       jenkins_net:
-        aliases: ["docker"]
-    restart: unless-stopped
+        aliases: ["docker"]  # DinD accessible as "docker" hostname on this network
+    restart: unless-stopped  # Auto-restart container if it stops
 
-  jenkins:
+  jenkins:            # Jenkins service (controller)
     image: jenkins/jenkins:lts-jdk11
-    user: root
+    user: root         # Run as root (needed for Docker CLI access)
     environment:
-      - DOCKER_HOST=tcp://docker:2376
-      - DOCKER_CERT_PATH=/certs/client
-      - DOCKER_TLS_VERIFY=1
+      - DOCKER_HOST=tcp://docker:2376      # Connect Jenkins to DinD daemon
+      - DOCKER_CERT_PATH=/certs/client     # Path to client certs
+      - DOCKER_TLS_VERIFY=1                # Enforce TLS
     volumes:
-      - jenkins_home:/var/jenkins_home      # already present
-      - docker_certs_client:/certs/client:ro
-      - /usr/bin/docker:/usr/bin/docker
+      - jenkins_home:/var/jenkins_home        # Persist Jenkins data
+      - docker_certs_client:/certs/client:ro  # Read-only client certs
+      - /usr/bin/docker:/usr/bin/docker     # Use docker CLI inside Jenkins container
     ports:
-      - "8080:8080"
-      - "50000:50000"
-    networks: [jenkins_net]
-    restart: unless-stopped
-
+      - "8080:8080"   # Jenkins web UI
+      - "50000:50000" # Port for Jenkins agents
+    networks: [jenkins_net]   # Connect Jenkins to the same network as DinD
+    restart: unless-stopped   # Auto-restart Jenkins if it stops
