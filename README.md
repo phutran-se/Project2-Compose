@@ -30,7 +30,7 @@ Key points:
 
 Recommended versions used in my setup:
 
-* Jenkins LTS (JDK 21)
+* Jenkins LTS (JDK 11)
 * Node **16** for build/test containers
 * Snyk CLI for dependency scanning (configured to fail on High/Critical)
 
