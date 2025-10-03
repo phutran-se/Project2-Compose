@@ -37,7 +37,7 @@ services:
       - docker_certs_client:/certs/client:ro  # Read-only client certs
       - /usr/bin/docker:/usr/bin/docker     # Use docker CLI inside Jenkins container
     ports:
-      - "8080:8080"   # Jenkins web UI
-      - "50000:50000" # Port for Jenkins agents
+      - "8080:8080"    # Jenkins web UI
+      - "50000:50000"  # Port for Jenkins agents
     networks: [jenkins_net]   # Connect Jenkins to the same network as DinD
     restart: unless-stopped   # Auto-restart Jenkins if it stops
