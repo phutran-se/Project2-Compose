@@ -94,6 +94,7 @@ docker compose down
 Project2-Compose/
 ├─ docker-compose.yml
 └─ README.md
+└─ SECURITY.md
 ```
 
 * `docker-compose.yml` defines two services: **jenkins** and **dind**, one network, and several named volumes.
