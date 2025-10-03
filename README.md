@@ -93,7 +93,7 @@ docker compose down
 ```
 Project2-Compose/
 ├─ docker-compose.yml
-└─ README.md
+├─ README.md
 └─ SECURITY.md
 ```
 
